@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6d5dfc">
+<title>PocketPal – Daily Expense Tracker</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f1f2fb;--fg:#161a2b;--mut:#737a93;--bd:#e4e6f2;--card:#fff;--pri:#6d5dfc;--pri2:#a855f7;--red:#ef4444;--grn:#10b981;--sh:0 8px 30px rgba(60,60,120,.09)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0e16;--fg:#eef0f8;--mut:#8f96ad;--bd:#242838;--card:#151826;--sh:0 8px 30px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--bg:#0c0e16;--fg:#eef0f8;--mut:#8f96ad;--bd:#242838;--card:#151826;--sh:0 8px 30px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.45;min-height:100vh}
+.wrap{max-width:1440px;margin:0 auto;padding:16px 16px 110px;display:grid;gap:16px}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes slide{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,20px)}}
+.wrap>*{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+.wrap>*:nth-child(2){animation-delay:.06s}.wrap>*:nth-child(3){animation-delay:.12s}.wrap>*:nth-child(4){animation-delay:.18s}.wrap>*:nth-child(5){animation-delay:.24s}.wrap>*:nth-child(6){animation-delay:.3s}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.top h1{margin:0;font-size:20px;display:flex;align-items:center;gap:8px}
+.top h1 span{display:inline-block;animation:float 3s ease-in-out infinite}
+select,input{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;width:100%;outline:none;transition:.2s}
+select:focus,input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(109,93,252,.18)}
+.top select{width:auto;padding:7px 10px}
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:22px;color:#fff;background:linear-gradient(135deg,#4338ca,#6d5dfc);box-shadow:0 14px 40px rgba(67,56,202,.3)}.hero>*{position:relative;z-index:1}.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;filter:blur(30px);opacity:.45;z-index:0;animation:drift 9s ease-in-out infinite}.hero:before{width:190px;height:190px;background:#a78bfa;top:-60px;right:-40px}.hero:after{width:150px;height:150px;background:#22d3ee;bottom:-60px;left:30%;animation-delay:-4s}
+.pb{height:8px;background:rgba(255,255,255,.22);border-radius:99px;margin-top:16px;overflow:hidden}.pb i{display:block;height:100%;width:0;background:#fff;border-radius:99px;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}.pt{font-size:12px;opacity:.9;margin-top:6px}
+.hero small{opacity:.85}
+.hero .bal{font-size:40px;font-weight:800;letter-spacing:-1px;margin:2px 0 14px}
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border-radius:14px;padding:9px 14px;flex:1;min-width:130px}
+.chip b{display:block;font-size:17px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:16px;box-shadow:var(--sh)}
+.card h2{margin:0 0 12px;font-size:15px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nav b{font-size:17px}
+.ib{width:38px;height:38px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--fg);font-size:18px;cursor:pointer;transition:.2s}
+.ib:hover{background:var(--pri);color:#fff;transform:scale(1.08)}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.three div{background:var(--bg);border-radius:14px;padding:10px;text-align:center}
+.three small{color:var(--mut);display:block}
+.three b{font-size:15px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g2>.card:first-child{grid-column:1/-1}
+@media(min-width:1000px){.wrap{grid-template-columns:1fr 1fr;padding:24px 32px 110px;gap:20px}.wrap>.top,.wrap>.g2,.wrap>:nth-child(7){grid-column:1/-1}.g2{grid-template-columns:2fr 1fr}.g2>.card:first-child{grid-column:auto}.wrap>:nth-child(3){display:flex;flex-direction:column;justify-content:center}.hero .bal{font-size:48px}}
+@media(max-width:720px){.g2{grid-template-columns:1fr}.hero .bal{font-size:34px}}
+.bars{display:flex;gap:6px;align-items:flex-end;height:185px;overflow-x:auto;position:relative;padding-bottom:6px;scroll-behavior:smooth}
+.col{flex:1;min-width:48px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;height:100%;justify-content:flex-end}
+.pair{display:flex;gap:3px;align-items:flex-end;height:130px}
+.b{display:block;width:13px;border-radius:7px 7px 3px 3px;height:0;transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.b.g{background:linear-gradient(var(--grn),#34d399)}.b.r{background:linear-gradient(var(--pri2),var(--pri))}
+.col span{font-size:11px;color:var(--mut)}
+.col.sel span{color:var(--pri);font-weight:700}
+.col.sel .pair{filter:drop-shadow(0 4px 8px rgba(109,93,252,.45))}
+.leg{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:8px}
+.leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.donut{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
+.donut svg{width:150px;height:150px;transform:rotate(-90deg)}
+.donut circle{transition:stroke-dasharray 1s cubic-bezier(.2,.8,.2,1)}
+.dc{position:absolute;text-align:center}
+.dw{position:relative;display:grid;place-items:center}
+.dc small{color:var(--mut);display:block;font-size:11px}
+.lg{flex:1;min-width:150px;font-size:13px}
+.lg div{display:flex;justify-content:space-between;gap:8px;padding:4px 0}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--mut);font-weight:600;text-align:right;padding:6px}th:first-child,td:first-child{text-align:left}
+td{padding:9px 6px;border-top:1px solid var(--bd);text-align:right;cursor:pointer;transition:.2s}
+tr:hover td{background:var(--bg)}tr.sel td{color:var(--pri);font-weight:700}
+.pos{color:var(--grn)}.neg{color:var(--red)}
+.it{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--bd);animation:slide .4s both}
+.it:first-child{border:0}
+.ic{width:42px;height:42px;border-radius:14px;background:var(--bg);display:grid;place-items:center;font-size:20px}
+.it .m{flex:1;min-width:0}.it .m small{color:var(--mut);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x{border:0;background:transparent;color:var(--mut);cursor:pointer;font-size:16px;padding:6px;border-radius:8px}.x:hover{color:var(--red);background:var(--bg)}
+.empty{text-align:center;color:var(--mut);padding:22px 0}.empty span{display:block;font-size:34px;animation:float 3s infinite}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools button,.rl{border:1px solid var(--bd);background:var(--card);color:var(--fg);padding:9px 13px;border-radius:12px;cursor:pointer;font:inherit;font-size:13px;transition:.2s}
+.tools button:hover,.rl:hover{border-color:var(--pri);color:var(--pri);transform:translateY(-2px)}
+.addbar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--bd);display:flex;gap:10px;justify-content:center;z-index:20;box-shadow:0 -8px 30px rgba(0,0,0,.08)}.addbar button{flex:1;max-width:260px;border:0;border-radius:14px;padding:15px 8px;color:#fff;font:inherit;font-weight:800;font-size:15px;cursor:pointer;transition:.2s}.addbar button:active{transform:scale(.96)}.addbar .ae{background:#ef4444}.addbar .ai{background:#10b981}
+.ov{position:fixed;inset:0;background:rgba(10,12,25,.55);opacity:0;pointer-events:none;transition:.3s;z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.ov.on{opacity:1;pointer-events:auto}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:26px 26px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);display:grid;gap:12px}
+.ov.on .sheet{transform:none}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:14px;padding:4px}
+.seg button{border:0;background:transparent;color:var(--mut);padding:10px;border-radius:11px;font:inherit;font-weight:700;cursor:pointer;transition:.25s}
+.seg button.on{background:var(--card);color:var(--fg);box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.cats{display:flex;flex-wrap:wrap;gap:8px}
+.cats button{border:1px solid var(--bd);background:var(--bg);color:var(--fg);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;transition:.2s}
+.cats button.on{background:var(--pri);color:#fff;border-color:var(--pri);transform:scale(1.06)}
+.amt{font-size:28px;font-weight:800;text-align:center}
+.save{border:0;border-radius:14px;padding:14px;color:#fff;font:inherit;font-weight:800;font-size:16px;cursor:pointer;background:linear-gradient(135deg,var(--pri),var(--pri2))}
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.35s;z-index:40;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.addbar .mic{flex:0 0 58px;max-width:58px;height:58px;border-radius:50%;padding:0;align-self:center;font-size:24px;background:linear-gradient(135deg,#6d5dfc,#a855f7);box-shadow:0 6px 18px rgba(109,93,252,.45)}
+.addbar .mic.live{animation:pulse 1s infinite;background:#ef4444}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}100%{box-shadow:0 0 0 18px rgba(239,68,68,0)}}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:14px}
+.row input[type=checkbox]{width:22px;height:22px;padding:0}.row input[type=time],.row select{width:auto;padding:7px 10px}
+.rem{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-160%);width:calc(100% - 24px);max-width:480px;background:var(--card);color:var(--fg);border:1px solid var(--pri);box-shadow:var(--sh);border-radius:18px;padding:14px;z-index:50;transition:transform .45s cubic-bezier(.2,.8,.2,1);display:grid;gap:10px}
+.rem.on{transform:translate(-50%,0)}.rem b{font-size:15px}.rem small{color:var(--mut)}
+.rem div{display:flex;gap:8px}.rem button{flex:1;border:0;border-radius:12px;padding:10px;font:inherit;font-weight:700;cursor:pointer;color:#fff;background:var(--pri)}.rem button.g{background:var(--bg);color:var(--fg);flex:0 0 44px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1><span>👛</span><div>PocketPal<small style="display:block;font-size:11px;font-weight:400;color:var(--mut)">Know where your money goes</small></div></h1><select id="cur"><option>₹</option><option>$</option><option>€</option><option>£</option></select></div>
+
+  <div class="hero">
+    <small>Total balance</small>
+    <div class="bal" id="bal">0</div>
+    <div class="chips">
+      <div class="chip"><small>⬆ Income</small><b id="tinc">0</b></div>
+      <div class="chip"><small>⬇ Spent</small><b id="texp">0</b></div>
+    </div>
+    <div class="pb"><i id="pbf"></i></div><div class="pt" id="pt"></div>
+  </div>
+
+  <div class="card">
+    <div class="nav"><button class="ib" id="prev">‹</button><b id="mlabel"></b><button class="ib" id="next">›</button></div>
+    <div class="three"><div><small>Income</small><b id="mi" class="pos">0</b></div><div><small>Spent</small><b id="me" class="neg">0</b></div><div><small>Saved</small><b id="ms">0</b></div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card"><h2>All months <small style="color:var(--mut);font-weight:400">(swipe sideways, tap a bar)</small></h2><div class="bars" id="bars"></div>
+      <div class="leg"><span><i style="background:var(--grn)"></i>Income</span><span><i style="background:var(--pri)"></i>Spent</span></div></div>
+    <div class="card"><h2>Where the money went</h2><div class="donut" id="donut"></div></div>
+  </div>
+
+  <div class="card"><h2>Month by month</h2><div style="overflow-x:auto"><table><thead><tr><th>Month</th><th>Income</th><th>Spent</th><th>Saved</th></tr></thead><tbody id="tb"></tbody></table></div></div>
+
+  <div class="card"><h2 id="lt">Transactions</h2><div id="list"></div></div>
+
+  <div class="card"><h2>🔔 Reminders &amp; voice</h2>
+  <label class="row"><span>Daily reminders</span><input type="checkbox" id="ron"></label>
+  <label class="row"><span>Reminder 1</span><input type="time" id="t1"></label>
+  <label class="row"><span>Reminder 2</span><input type="time" id="t2"></label>
+  <label class="row"><span>Language / ભાષા</span><select id="vl"><option value="gu-IN">ગુજરાતી</option><option value="hi-IN">हिन्दी</option><option value="en-IN">English</option><option value="mr-IN">मराठी</option><option value="bn-IN">বাংলা</option><option value="ta-IN">தமிழ்</option><option value="te-IN">తెలుగు</option><option value="kn-IN">ಕನ್ನಡ</option><option value="ml-IN">മലയാളം</option><option value="pa-IN">ਪੰਜਾਬੀ</option><option value="ur-IN">اردو</option></select></label>
+  <div class="tools" style="margin:8px 0"><button id="rn">🔔 Allow notifications</button><button id="rt">▶ Test reminder</button><button id="ck">🧪 Check my phone</button></div><div id="ckr" style="font-size:13px;line-height:1.8;margin-bottom:8px"></div>
+  <small style="color:var(--mut)">Reminders ring while PocketPal is open, and show up when you reopen it. Tap 🎤 and say: “150 nasta na”, “20 chai”, “500 petrol”.</small></div>
+  <div class="card"><h2>Your data</h2><div class="tools"><button id="bk">⬇ Backup</button><label class="rl">⬆ Restore<input id="rs" type="file" accept=".json,application/json" hidden></label><button id="xl">📊 Export to Excel</button></div>
+    <small style="color:var(--mut);display:block;margin-top:10px">Your data is saved automatically on this device. Take a backup now and then.</small></div>
+</div>
+
+<div class="addbar"><button class="ae" id="addE">💸 I spent money</button><button class="mic" id="mic" aria-label="Speak an expense">🎤</button><button class="ai" id="addI">💰 I received money</button></div>
+<div class="ov" id="ov"><div class="sheet">
+  <div class="seg"><button id="te" class="on">Expense</button><button id="ti">Income</button></div>
+  <input class="amt" id="amt" type="number" inputmode="decimal" min="0" placeholder="Enter amount">
+  <div class="cats" id="cats"></div>
+  <input id="note" placeholder="Note (optional)">
+  <input id="date" type="date">
+  <button class="save" id="save">Save</button>
+</div></div>
+<div class="toast" id="toast"></div>
+<div class="rem" id="rem"><b>⏰ Expense reminder</b><small id="remt"></small><div><button id="rv">🎤 Speak</button><button id="ra">✍ Add</button><button class="g" id="rx" aria-label="Dismiss">✕</button></div></div>
+
+<script>
+var $=function(i){return document.getElementById(i)};
+var KEY="hisab-entries-v1",CK="hisab-currency";
+var EXPC={Food:"🍔",Nasta:"🥪",Chai:"☕",Jaman:"🍛",Travel:"🚗",Home:"🏠",Bills:"💡",Shopping:"🛍️",Health:"💊",Fun:"🎬",Other:"📌"};
+var INCC={Salary:"💼",Business:"🏪",Gift:"🎁",Other:"💰"};
+var COL=["#6d5dfc","#a855f7","#ec4899","#f59e0b","#10b981","#06b6d4","#3b82f6","#94a3b8","#f97316","#14b8a6","#eab308","#64748b"];
+var data=[],type="exp",cat="Food",sym="₹",sel;
+function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lset(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function shift(m,n){var p=m.split("-"),d=new Date(+p[0],+p[1]-1+n,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
+function mlab(m,s){var p=m.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleString("en-US",s?{month:"short"}:{month:"long",year:"numeric"})}
+function fmt(n){return (n<0?"-":"")+sym+Math.abs(Math.round(n)).toLocaleString(sym=="₹"?"en-IN":"en-US")}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function anim(el,to){var from=el._v||0;el._v=to;var t0=performance.now();(function f(t){var p=Math.min(1,(t-t0)/700),e=1-Math.pow(1-p,3);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(f)})(t0)}
+var tt;function toast(t,ms){var e=$("toast");e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){e.classList.remove("on")},ms||1800)}
+function load(){try{data=JSON.parse(ls(KEY)||"[]")}catch(e){data=[]}}
+function save(){lset(KEY,JSON.stringify(data))}
+
+function render(){
+  var inc=0,exp=0,by={};
+  data.forEach(function(x){var m=x.date.slice(0,7);by[m]=by[m]||{i:0,e:0};if(x.type=="inc"){inc+=x.amt;by[m].i+=x.amt}else{exp+=x.amt;by[m].e+=x.amt}});
+  var cur=by[sel]||{i:0,e:0};
+  anim($("bal"),inc-exp);anim($("tinc"),inc);anim($("texp"),exp);
+  var pc=inc>0?Math.min(100,exp/inc*100):0;setTimeout(function(){$("pbf").style.width=pc+"%"},80);
+  $("pt").textContent=inc>0?"You have spent "+Math.round(exp/inc*100)+"% of your income":"Add your income first to see how much is left";
+  $("mlabel").textContent=mlab(sel);
+  $("mi").textContent=fmt(cur.i);$("me").textContent=fmt(cur.e);
+  var sv=cur.i-cur.e;$("ms").textContent=fmt(sv);$("ms").className=sv<0?"neg":"pos";
+  // bars
+  var ks=Object.keys(by).concat([sel,today().slice(0,7)]).sort(),ms=[],mm=ks[0];while(mm<=ks[ks.length-1]){ms.push(mm);mm=shift(mm,1)}
+  var mx=1;ms.forEach(function(m){var v=by[m]||{i:0,e:0};mx=Math.max(mx,v.i,v.e)});
+  $("bars").innerHTML=ms.map(function(m){var v=by[m]||{i:0,e:0};
+    return '<div class="col'+(m==sel?" sel":"")+'" data-m="'+m+'"><div class="pair"><i class="b g" data-h="'+(v.i/mx*128)+'"></i><i class="b r" data-h="'+(v.e/mx*128)+'"></i></div><span>'+mlab(m,1)+' \''+m.slice(2,4)+'</span></div>'}).join("");
+  Array.prototype.forEach.call($("bars").children,function(c){c.onclick=function(){sel=c.getAttribute("data-m");render()}});
+  var sc=$("bars").querySelector(".sel");if(sc)$("bars").scrollLeft=sc.offsetLeft-$("bars").clientWidth/2+sc.clientWidth/2;
+  setTimeout(function(){Array.prototype.forEach.call(document.querySelectorAll(".b"),function(b){b.style.height=Math.max(3,+b.getAttribute("data-h"))+"px"})},40);
+  // donut
+  var cats={};data.forEach(function(x){if(x.type=="exp"&&x.date.slice(0,7)==sel)cats[x.cat]=(cats[x.cat]||0)+x.amt});
+  var ck=Object.keys(cats).sort(function(a,b){return cats[b]-cats[a]}),tot=cur.e,acc=0;
+  if(!ck.length){$("donut").innerHTML='<div class="empty"><span>🌱</span>No spending in '+mlab(sel)+'</div>'}
+  else{
+    var cs=ck.map(function(c,i){var p=cats[c]/tot*100,s='<circle r="15.9155" cx="21" cy="21" fill="none" stroke="'+COL[i%COL.length]+'" stroke-width="5" stroke-dasharray="0 100" stroke-dashoffset="'+(-acc)+'" data-d="'+p+' '+(100-p)+'"/>';acc+=p;return s}).join("");
+    var lg=ck.map(function(c,i){return '<div><span><i style="background:'+COL[i%COL.length]+'"></i>'+(EXPC[c]||"📌")+' '+esc(c)+'</span><b>'+fmt(cats[c])+' · '+Math.round(cats[c]/tot*100)+'%</b></div>'}).join("");
+    $("donut").innerHTML='<div class="dw"><svg viewBox="0 0 42 42"><circle r="15.9155" cx="21" cy="21" fill="none" stroke="var(--bg)" stroke-width="5"/>'+cs+'</svg><div class="dc"><small>Spent</small><b>'+fmt(tot)+'</b></div></div><div class="lg">'+lg+'</div>';
+    setTimeout(function(){Array.prototype.forEach.call(document.querySelectorAll(".donut circle[data-d]"),function(c){c.setAttribute("stroke-dasharray",c.getAttribute("data-d"))})},40);
+  }
+  // table
+  var all=Object.keys(by);if(all.indexOf(sel)<0)all.push(sel);all.sort().reverse();
+  $("tb").innerHTML=all.map(function(m){var v=by[m]||{i:0,e:0},s=v.i-v.e;
+    return '<tr data-m="'+m+'" class="'+(m==sel?"sel":"")+'"><td>'+mlab(m)+'</td><td class="pos">'+fmt(v.i)+'</td><td class="neg">'+fmt(v.e)+'</td><td class="'+(s<0?"neg":"pos")+'">'+fmt(s)+'</td></tr>'}).join("");
+  Array.prototype.forEach.call($("tb").children,function(r){r.onclick=function(){sel=r.getAttribute("data-m");render()}});
+  // list
+  var items=data.filter(function(x){return x.date.slice(0,7)==sel}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id});
+  $("lt").textContent="Transactions · "+mlab(sel);
+  $("list").innerHTML=items.length?items.map(function(x,i){
+    return '<div class="it" style="animation-delay:'+Math.min(i,12)*.04+'s"><div class="ic">'+((x.type=="inc"?INCC:EXPC)[x.cat]||"📌")+'</div><div class="m"><b>'+esc(x.cat)+'</b><small>'+esc(x.note||"")+' '+x.date+'</small></div><b class="'+(x.type=="inc"?"pos":"neg")+'">'+(x.type=="inc"?"+":"-")+fmt(x.amt).replace("-","")+'</b><button class="x" data-del="'+x.id+'" aria-label="Delete">✕</button></div>'}).join(""):'<div class="empty"><span>📭</span>Nothing here yet. Use the buttons below to add.</div>';
+}
+$("list").onclick=function(e){var d=e.target.getAttribute("data-del");if(d){data=data.filter(function(x){return String(x.id)!==d});save();render();toast("Deleted")}};
+$("prev").onclick=function(){sel=shift(sel,-1);render()};
+$("next").onclick=function(){sel=shift(sel,1);render()};
+$("cur").onchange=function(){sym=this.value;lset(CK,sym);render()};
+
+function setType(t){type=t;$("te").className=t=="exp"?"on":"";$("ti").className=t=="inc"?"on":"";
+  var c=t=="exp"?EXPC:INCC;cat=Object.keys(c)[0];drawCats()}
+function drawCats(){var c=type=="exp"?EXPC:INCC;
+  $("cats").innerHTML=Object.keys(c).map(function(k){return '<button data-c="'+k+'" class="'+(k==cat?"on":"")+'">'+c[k]+" "+k+'</button>'}).join("")}
+$("cats").onclick=function(e){var c=e.target.getAttribute("data-c");if(c){cat=c;drawCats()}};
+$("te").onclick=function(){setType("exp")};$("ti").onclick=function(){setType("inc")};
+function openS(){$("date").value=today();$("ov").classList.add("on");setTimeout(function(){$("amt").focus()},350)}
+function closeS(){$("ov").classList.remove("on")}
+$("addE").onclick=function(){setType("exp");openS()};$("addI").onclick=function(){setType("inc");openS()};
+$("ov").onclick=function(e){if(e.target==this)closeS()};
+$("save").onclick=function(){
+  var a=parseFloat($("amt").value);if(!(a>0)){$("amt").focus();return}
+  var d=$("date").value||today();
+  addEntry(type,a,cat,$("note").value.trim(),d);
+  $("amt").value="";$("note").value="";closeS();toast((type=="exp"?"✓ ":"💰 ")+fmt(a)+" "+L10()[8])};
+function addEntry(t,a,c,n,d){data.push({id:Date.now(),type:t,amt:a,cat:c,note:n,date:d});save();sel=d.slice(0,7);render();beep()}
+
+function dl(n,t,ty){var u=URL.createObjectURL(new Blob([t],{type:ty})),a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},2000)}
+$("bk").onclick=function(){dl("expense-backup-"+today()+".json",JSON.stringify({entries:data},null,1),"application/json");toast("Backup downloaded")};
+$("xl").onclick=function(){
+  var rows=[["Date","Type","Category","Note","Amount"]].concat(data.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).map(function(x){return [x.date,x.type=="inc"?"Income":"Expense",x.cat,x.note,x.amt]}));
+  dl("expenses-"+today()+".csv","\ufeff"+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n"),"text/csv");toast("Exported")};
+$("rs").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){try{var v=JSON.parse(r.result),l=Array.isArray(v)?v:v.entries,seen={};data.forEach(function(x){seen[x.id]=1});
+    l.forEach(function(x){if(x&&x.id&&x.date&&x.amt&&!seen[x.id]){data.push(x);seen[x.id]=1}});save();render();toast("Restored ✓")}catch(e){toast("Invalid file")}};
+  r.readAsText(f);this.value=""};
+
+
+/* ---- beep ---- */
+var AC=null;
+function beep(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state=="suspended")AC.resume();var t=AC.currentTime;
+  [880,1175].forEach(function(f,i){var o=AC.createOscillator(),g=AC.createGain(),s=t+i*.14;o.type="sine";o.frequency.value=f;o.connect(g);g.connect(AC.destination);
+    g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.4,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+.12);o.start(s);o.stop(s+.14)})}catch(e){}
+  try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
+
+/* ---- voice ---- */
+var ZR=[0x660,0x6F0,0x966,0x9E6,0xA66,0xAE6,0xBE6,0xC66,0xCE6,0xD66];function dg(c){var p=c.codePointAt(0);for(var i=0;i<ZR.length;i++)if(p>=ZR[i]&&p<ZR[i]+10)return p-ZR[i];return c}
+function norm(s){return s.toLowerCase().replace(/\p{Nd}/gu,dg).replace(/(\d),(\d)/g,"$1$2")}
+var NW={"સો":100,"so":100,"sau":100,"सौ":100,"hundred":100,"બસો":200,"baso":200,"પાંચસો":500,"panchso":500,"પચાસ":50,"pachas":50,"fifty":50,"વીસ":20,"vis":20,"twenty":20,"ત્રીસ":30,"tris":30,"દસ":10,"das":10,"ten":10};
+var RULES=[
+ {c:"Nasta",s:["nasta","nasto","nashta","naasta","breakfast","snack","નાસ્ત","નાશ્ત","नाश्त"]},
+ {c:"Chai",s:["chai","coffee","ચાય","કોફી","चाय"],t:["cha","ચા","चा"]},
+ {c:"Jaman",s:["jaman","jamv","lunch","dinner","thali","જમણ","જમવ","થાળી","खाना"]},
+ {c:"Food",s:["dudh","shak","food","khana","hotel","restaurant","દૂધ","શાક","ફળ","ખાવા"]},
+ {c:"Travel",s:["petrol","diesel","fuel","rickshaw","riksha","ticket","bhadu","પેટ્રોલ","ડીઝલ","રિક્ષા","ભાડ"],t:["bus","auto","બસ","ઓટો"]},
+ {c:"Bills",s:["bill","light","recharge","wifi","બિલ","રિચાર્જ","લાઈટ"]},
+ {c:"Shopping",s:["shopping","kapda","કપડા","શોપિંગ"]},
+ {c:"Health",s:["dawa","dava","medicine","doctor","દવા","ડૉક્ટર","ડોક્ટર"]},
+ {c:"Fun",s:["movie","film","picture","ફિલ્મ","મૂવી"]}];
+function parseVoice(raw){
+  var t=norm(raw),m=t.match(/\d+(?:\.\d+)?/),a=m?parseFloat(m[0]):0,w=t.split(/[\s,.]+/);
+  if(!a)for(var i=0;i<w.length;i++)if(NW[w[i]]){a=NW[w[i]];break}
+  if(!(a>0))return null;
+  if(/salary|pagar|પગાર|पगार|वेतन|বেতন|சம்பளம்|జీతం|ಸಂಬಳ|ശമ്പളം|ਤਨਖਾਹ|تنخواہ/.test(t))return{t:"inc",a:a,c:"Salary",n:raw};
+  var c="Other";
+  outer:for(var r=0;r<RULES.length;r++){var R1=RULES[r];
+    for(var j=0;j<R1.s.length;j++)if(t.indexOf(R1.s[j])>-1){c=R1.c;break outer}
+    if(R1.t)for(var k=0;k<R1.t.length;k++)if(w.indexOf(R1.t[k])>-1){c=R1.c;break outer}}
+  return{t:"exp",a:a,c:c,n:raw}}
+var T={
+"en-IN":["💸 I spent money","💰 I received money","Expense","Income","Save","Enter amount","🎤 Listening… say “150 nasta na”","Didn’t catch the amount. Try again","added ✓","Time to add today’s expenses. Tap 🎤 and speak."],
+"gu-IN":["💸 મેં ખર્ચ કર્યો","💰 મને પૈસા મળ્યા","ખર્ચ","આવક","સેવ કરો","રકમ લખો","🎤 સાંભળું છું… બોલો “150 નાસ્તા ના”","રકમ સમજાઈ નહિ. ફરી બોલો","ઉમેરાયું ✓","આજના ખર્ચ ઉમેરવાનો સમય. 🎤 દબાવીને બોલો."],
+"hi-IN":["💸 मैंने खर्च किया","💰 मुझे पैसे मिले","खर्च","आमदनी","सेव करें","रकम लिखें","🎤 सुन रहा हूँ… बोलें “150 नाश्ता”","रकम समझ नहीं आई। फिर बोलें","जुड़ गया ✓","आज के खर्च जोड़ने का समय। 🎤 दबाकर बोलें।"],
+"mr-IN":["💸 मी खर्च केला","💰 मला पैसे मिळाले","खर्च","उत्पन्न","सेव्ह करा","रक्कम टाका","🎤 ऐकत आहे… बोला “150 नाश्ता”","रक्कम समजली नाही. पुन्हा बोला","जोडले ✓","आजचा खर्च जोडण्याची वेळ. 🎤 दाबून बोला."],
+"bn-IN":["💸 আমি খরচ করেছি","💰 আমি টাকা পেয়েছি","খরচ","আয়","সেভ করুন","পরিমাণ লিখুন","🎤 শুনছি… বলুন “150 নাস্তা”","পরিমাণ বুঝতে পারিনি। আবার বলুন","যোগ হয়েছে ✓","আজকের খরচ যোগ করার সময়। 🎤 চেপে বলুন।"],
+"ta-IN":["💸 நான் செலவு செய்தேன்","💰 எனக்கு பணம் வந்தது","செலவு","வருமானம்","சேமி","தொகையை உள்ளிடவும்","🎤 கேட்கிறேன்… சொல்லுங்கள் “150 டிபன்”","தொகை புரியவில்லை. மீண்டும் சொல்லுங்கள்","சேர்க்கப்பட்டது ✓","இன்றைய செலவுகளைச் சேர்க்கும் நேரம். 🎤 அழுத்திப் பேசுங்கள்."],
+"te-IN":["💸 నేను ఖర్చు చేశాను","💰 నాకు డబ్బు వచ్చింది","ఖర్చు","ఆదాయం","సేవ్ చేయి","మొత్తం నమోదు చేయండి","🎤 వింటున్నాను… చెప్పండి “150 టిఫిన్”","మొత్తం అర్థం కాలేదు. మళ్లీ చెప్పండి","జోడించబడింది ✓","నేటి ఖర్చులు జోడించే సమయం. 🎤 నొక్కి మాట్లాడండి."],
+"kn-IN":["💸 ನಾನು ಖರ್ಚು ಮಾಡಿದೆ","💰 ನನಗೆ ಹಣ ಬಂತು","ಖರ್ಚು","ಆದಾಯ","ಉಳಿಸಿ","ಮೊತ್ತ ನಮೂದಿಸಿ","🎤 ಕೇಳುತ್ತಿದ್ದೇನೆ… ಹೇಳಿ “150 ತಿಂಡಿ”","ಮೊತ್ತ ಅರ್ಥವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಹೇಳಿ","ಸೇರಿಸಲಾಗಿದೆ ✓","ಇಂದಿನ ಖರ್ಚು ಸೇರಿಸುವ ಸಮಯ. 🎤 ಒತ್ತಿ ಮಾತನಾಡಿ."],
+"ml-IN":["💸 ഞാൻ ചെലവാക്കി","💰 എനിക്ക് പണം കിട്ടി","ചെലവ്","വരുമാനം","സേവ് ചെയ്യുക","തുക നൽകുക","🎤 കേൾക്കുന്നു… പറയൂ “150 ടിഫിൻ”","തുക മനസ്സിലായില്ല. വീണ്ടും പറയൂ","ചേർത്തു ✓","ഇന്നത്തെ ചെലവ് ചേർക്കാനുള്ള സമയം. 🎤 അമർത്തി പറയൂ."],
+"pa-IN":["💸 ਮੈਂ ਖਰਚ ਕੀਤਾ","💰 ਮੈਨੂੰ ਪੈਸੇ ਮਿਲੇ","ਖਰਚ","ਆਮਦਨ","ਸੇਵ ਕਰੋ","ਰਕਮ ਲਿਖੋ","🎤 ਸੁਣ ਰਿਹਾ ਹਾਂ… ਬੋਲੋ “150 ਨਾਸ਼ਤਾ”","ਰਕਮ ਸਮਝ ਨਹੀਂ ਆਈ। ਫਿਰ ਬੋਲੋ","ਜੋੜਿਆ ਗਿਆ ✓","ਅੱਜ ਦੇ ਖਰਚ ਜੋੜਨ ਦਾ ਸਮਾਂ। 🎤 ਦਬਾ ਕੇ ਬੋਲੋ।"],
+"ur-IN":["💸 میں نے خرچ کیا","💰 مجھے پیسے ملے","خرچ","آمدنی","محفوظ کریں","رقم لکھیں","🎤 سن رہا ہوں… بولیں “150 ناشتہ”","رقم سمجھ نہیں آئی۔ دوبارہ بولیں","شامل ہو گیا ✓","آج کے خرچ شامل کرنے کا وقت۔ 🎤 دبا کر بولیں۔"]};
+function L10(){return T[R.lang]||T["en-IN"]}
+function applyLang(){var L=L10();$("addE").textContent=L[0];$("addI").textContent=L[1];$("te").textContent=L[2];$("ti").textContent=L[3];$("save").textContent=L[4];$("amt").placeholder=L[5];document.documentElement.lang=R.lang.slice(0,2)}
+var EX={Nasta:{s:["ટિફિન","টিফিন","நாஸ்தா","டிபன்","சிற்றுண்டி","టిఫిన్","అల్పాహారం","ತಿಂಡಿ","ಉಪಾಹಾರ","ടിഫിൻ","പ്രഭാതഭക്ഷണം","জলখাবার","নাস্তা","ਨਾਸ਼ਤਾ","ناشتہ","ناشتا","नास्ता","tiffin"]},
+Chai:{s:["தேநீர்","காபி","ചായ","చాయ్","ಚಹಾ","ਚਾਹ","چائے","चहा","কফি"],t:["চা","டீ","టీ","ಟೀ","ಕಾಫಿ"]},
+Jaman:{s:["जेवण","খাবার","ভাত","சாப்பாடு","భోజనం","ಊಟ","ഭക്ഷണം","ਖਾਣਾ","کھانا"]},
+Travel:{s:["পেট্রোল","பெட்ரோல்","పెట్రోల్","ಪೆಟ್ರೋಲ್","പെട്രോൾ","ਪੈਟਰੋਲ","پیٹرول","पेट्रोल","ডিজেল","டீசல்"]},
+Health:{s:["ওষুধ","மருந்து","మందులు","ಔಷಧ","മരുന്ന്","ਦਵਾਈ","دوا","औषध"]}};
+RULES.forEach(function(r){var x=EX[r.c];if(!x)return;r.s=r.s.concat(x.s||[]);if(x.t)r.t=(r.t||[]).concat(x.t)});
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=null,live=false;
+function handleVoice(alts){var p=null;for(var i=0;i<alts.length&&!p;i++)p=parseVoice(alts[i]);
+  if(!p){toast(L10()[7],2600);return}
+  addEntry(p.t,p.a,p.c,p.n,today());
+  toast((p.t=="inc"?"💰 ":"✓ ")+fmt(p.a)+" → "+p.c+" "+L10()[8],2600)}
+$("mic").onclick=function(){beep0();
+  if(!SR){toast("Voice isn’t supported in this browser. Use Chrome.",2800);return}
+  if(live&&rec){rec.stop();return}
+  rec=new SR();rec.lang=$("vl").value;rec.interimResults=false;rec.maxAlternatives=3;
+  rec.onstart=function(){live=true;$("mic").classList.add("live");toast(L10()[6],4000)};
+  rec.onend=function(){live=false;$("mic").classList.remove("live")};
+  rec.onerror=function(e){toast(e.error=="not-allowed"||e.error=="service-not-allowed"?(window.self!==window.top?"Mic is blocked inside Claude. Open the page directly in Chrome.":"Please allow microphone permission"):"Couldn’t hear that, try again",2600)};
+  rec.onresult=function(e){var a=[];for(var i=0;i<e.results[0].length;i++)a.push(e.results[0][i].transcript);handleVoice(a)};
+  try{rec.start()}catch(x){}};
+function beep0(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state=="suspended")AC.resume()}catch(e){}}
+
+/* ---- reminders ---- */
+var RK="pp-rem",R={on:true,t1:"12:00",t2:"19:30",lang:"gu-IN",f1:"",f2:""};
+try{var rv=JSON.parse(ls(RK)||"null");if(rv)for(var rk in rv)R[rk]=rv[rk]}catch(e){}
+function saveR(){lset(RK,JSON.stringify(R))}
+function mins(s){var p=(s||"0:0").split(":");return (+p[0])*60+(+p[1])}
+function fireRem(label){beep();$("remt").textContent=label+" "+L10()[9];$("rem").classList.add("on");
+  try{if("Notification" in window&&Notification.permission=="granted")new Notification("PocketPal ⏰",{body:"Time to add today’s expenses"})}catch(e){}}
+function checkRem(){if(!R.on)return;var n=new Date(),m=n.getHours()*60+n.getMinutes(),td=today(),L={t1:"🕛",t2:"🌇"};
+  for(var k in L){var f="f"+k.slice(1),s=mins(R[k]);if(R[f]!=td&&m>=s&&m<s+180){R[f]=td;saveR();fireRem(L[k]);return}}}
+$("ron").checked=R.on;$("t1").value=R.t1;$("t2").value=R.t2;$("vl").value=R.lang;applyLang();
+$("ron").onchange=function(){R.on=this.checked;saveR();toast(R.on?"Reminders on":"Reminders off")};
+$("t1").onchange=function(){R.t1=this.value||"12:00";R.f1="";saveR();checkRem()};
+$("t2").onchange=function(){R.t2=this.value||"19:30";R.f2="";saveR();checkRem()};
+$("vl").onchange=function(){R.lang=this.value;saveR();applyLang()};
+$("rn").onclick=function(){beep0();try{Notification.requestPermission().then(function(p){toast(p=="granted"?"Notifications allowed ✓":"Notifications blocked")})}catch(e){toast("Notifications not available here")}};
+$("rt").onclick=function(){fireRem("🔔")};
+$("rx").onclick=function(){$("rem").classList.remove("on")};
+$("rv").onclick=function(){$("rem").classList.remove("on");$("mic").click()};
+$("ra").onclick=function(){$("rem").classList.remove("on");setType("exp");openS()};
+$("ck").onclick=function(){beep0();var r=[];function ok(b,t,h){r.push((b?"✅ ":"❌ ")+t+(b?"":" — "+h))}
+  var st=false;try{localStorage.setItem("pp-t","1");st=localStorage.getItem("pp-t")=="1";localStorage.removeItem("pp-t")}catch(e){}
+  ok(st,"Data saving","storage is blocked");
+  ok(window.isSecureContext,"Secure (https) page","mic needs https");
+  ok(window.self===window.top,"Opened directly (not inside Claude)","mic is blocked in embedded pages");ok(!!SR,"Voice recognition supported","use Chrome on Android");
+  ok(!!(window.AudioContext||window.webkitAudioContext),"Beep sound supported","");
+  ok("Notification" in window,"Notifications supported"+("Notification" in window?" ("+Notification.permission+")":""),"not available here");
+  var p=parseVoice("150 nasta na");ok(p&&p.a==150&&p.c=="Nasta","Voice parser: “150 nasta na” → Nasta ₹150","parser problem");
+  $("ckr").innerHTML=r.join("<br>")+"<br>🔊 Did you hear the beep? If not, raise the volume and turn off silent mode.";beep();
+  try{navigator.permissions.query({name:"microphone"}).then(function(x){$("ckr").innerHTML+="<br>"+(x.state=="granted"?"✅":"⚠️")+" Microphone permission: "+x.state}).catch(function(){})}catch(e){}};
+document.addEventListener("visibilitychange",function(){if(!document.hidden)checkRem()});
+setInterval(checkRem,20000);setTimeout(checkRem,1200);
+document.addEventListener("click",beep0,{once:true});
+
+sym=ls(CK)||"₹";$("cur").value=sym;sel=today().slice(0,7);load();setType("exp");render();
+</script>
+</body>
+</html>
