@@ -103,6 +103,9 @@ tr:hover td{background:var(--bg)}tr.sel td{color:var(--pri);font-weight:700}
 .rem{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-160%);width:calc(100% - 24px);max-width:480px;background:var(--card);color:var(--fg);border:1px solid var(--pri);box-shadow:var(--sh);border-radius:18px;padding:14px;z-index:50;transition:transform .45s cubic-bezier(.2,.8,.2,1);display:grid;gap:10px}
 .rem.on{transform:translate(-50%,0)}.rem b{font-size:15px}.rem small{color:var(--mut)}
 .rem div{display:flex;gap:8px}.rem button{flex:1;border:0;border-radius:12px;padding:10px;font:inherit;font-weight:700;cursor:pointer;color:#fff;background:var(--pri)}.rem button.g{background:var(--bg);color:var(--fg);flex:0 0 44px}
+html,body{max-width:100%;overflow-x:hidden}.wrap>*,.g2>*,.top h1{min-width:0}
+@media(max-width:999px){.wrap{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:720px){.g2{grid-template-columns:minmax(0,1fr)}.addbar{gap:6px;padding-left:8px;padding-right:8px}.addbar .ae,.addbar .ai{min-width:0;font-size:13px;padding-left:6px;padding-right:6px;overflow-wrap:anywhere}.tools button,.rl{flex:1 1 auto}}
 </style>
 </head>
 <body>
@@ -140,9 +143,9 @@ tr:hover td{background:var(--bg)}tr.sel td{color:var(--pri);font-weight:700}
   <label class="row"><span>Reminder 2</span><input type="time" id="t2"></label>
   <label class="row"><span>Language / ભાષા</span><select id="vl"><option value="gu-IN">ગુજરાતી</option><option value="hi-IN">हिन्दी</option><option value="en-IN">English</option><option value="mr-IN">मराठी</option><option value="bn-IN">বাংলা</option><option value="ta-IN">தமிழ்</option><option value="te-IN">తెలుగు</option><option value="kn-IN">ಕನ್ನಡ</option><option value="ml-IN">മലയാളം</option><option value="pa-IN">ਪੰਜਾਬੀ</option><option value="ur-IN">اردو</option></select></label>
   <div class="tools" style="margin:8px 0"><button id="rn">🔔 Allow notifications</button><button id="rt">▶ Test reminder</button><button id="ck">🧪 Check my phone</button></div><div id="ckr" style="font-size:13px;line-height:1.8;margin-bottom:8px"></div>
-  <small style="color:var(--mut)">Reminders ring while PocketPal is open, and show up when you reopen it. Tap 🎤 and say: “150 nasta na”, “20 chai”, “500 petrol”.</small></div>
+  <small id="rh" style="color:var(--mut)"></small></div>
   <div class="card"><h2>Your data</h2><div class="tools"><button id="bk">⬇ Backup</button><label class="rl">⬆ Restore<input id="rs" type="file" accept=".json,application/json" hidden></label><button id="xl">📊 Export to Excel</button></div>
-    <small style="color:var(--mut);display:block;margin-top:10px">Your data is saved automatically on this device. Take a backup now and then.</small></div>
+    <small id="dh" style="color:var(--mut);display:block;margin-top:10px"></small></div>
 </div>
 
 <div class="addbar"><button class="ae" id="addE">💸 I spent money</button><button class="mic" id="mic" aria-label="Speak an expense">🎤</button><button class="ai" id="addI">💰 I received money</button></div>
@@ -168,7 +171,7 @@ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lset(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function shift(m,n){var p=m.split("-"),d=new Date(+p[0],+p[1]-1+n,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
-function mlab(m,s){var p=m.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleString("en-US",s?{month:"short"}:{month:"long",year:"numeric"})}
+function mlab(m,s){var p=m.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleString(R&&R.lang||"en-US",s?{month:"short"}:{month:"long",year:"numeric"})}
 function fmt(n){return (n<0?"-":"")+sym+Math.abs(Math.round(n)).toLocaleString(sym=="₹"?"en-IN":"en-US")}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function anim(el,to){var from=el._v||0;el._v=to;var t0=performance.now();(function f(t){var p=Math.min(1,(t-t0)/700),e=1-Math.pow(1-p,3);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(f)})(t0)}
@@ -182,7 +185,7 @@ function render(){
   var cur=by[sel]||{i:0,e:0};
   anim($("bal"),inc-exp);anim($("tinc"),inc);anim($("texp"),exp);
   var pc=inc>0?Math.min(100,exp/inc*100):0;setTimeout(function(){$("pbf").style.width=pc+"%"},80);
-  $("pt").textContent=inc>0?"You have spent "+Math.round(exp/inc*100)+"% of your income":"Add your income first to see how much is left";
+  $("pt").textContent=inc>0?G(28).replace("%d",Math.round(exp/inc*100)):G(29);
   $("mlabel").textContent=mlab(sel);
   $("mi").textContent=fmt(cur.i);$("me").textContent=fmt(cur.e);
   var sv=cur.i-cur.e;$("ms").textContent=fmt(sv);$("ms").className=sv<0?"neg":"pos";
@@ -197,11 +200,11 @@ function render(){
   // donut
   var cats={};data.forEach(function(x){if(x.type=="exp"&&x.date.slice(0,7)==sel)cats[x.cat]=(cats[x.cat]||0)+x.amt});
   var ck=Object.keys(cats).sort(function(a,b){return cats[b]-cats[a]}),tot=cur.e,acc=0;
-  if(!ck.length){$("donut").innerHTML='<div class="empty"><span>🌱</span>No spending in '+mlab(sel)+'</div>'}
+  if(!ck.length){$("donut").innerHTML='<div class="empty"><span>🌱</span>'+G(30).replace("%m",mlab(sel))+'</div>'}
   else{
     var cs=ck.map(function(c,i){var p=cats[c]/tot*100,s='<circle r="15.9155" cx="21" cy="21" fill="none" stroke="'+COL[i%COL.length]+'" stroke-width="5" stroke-dasharray="0 100" stroke-dashoffset="'+(-acc)+'" data-d="'+p+' '+(100-p)+'"/>';acc+=p;return s}).join("");
     var lg=ck.map(function(c,i){return '<div><span><i style="background:'+COL[i%COL.length]+'"></i>'+(EXPC[c]||"📌")+' '+esc(c)+'</span><b>'+fmt(cats[c])+' · '+Math.round(cats[c]/tot*100)+'%</b></div>'}).join("");
-    $("donut").innerHTML='<div class="dw"><svg viewBox="0 0 42 42"><circle r="15.9155" cx="21" cy="21" fill="none" stroke="var(--bg)" stroke-width="5"/>'+cs+'</svg><div class="dc"><small>Spent</small><b>'+fmt(tot)+'</b></div></div><div class="lg">'+lg+'</div>';
+    $("donut").innerHTML='<div class="dw"><svg viewBox="0 0 42 42"><circle r="15.9155" cx="21" cy="21" fill="none" stroke="var(--bg)" stroke-width="5"/>'+cs+'</svg><div class="dc"><small>'+G(3)+'</small><b>'+fmt(tot)+'</b></div></div><div class="lg">'+lg+'</div>';
     setTimeout(function(){Array.prototype.forEach.call(document.querySelectorAll(".donut circle[data-d]"),function(c){c.setAttribute("stroke-dasharray",c.getAttribute("data-d"))})},40);
   }
   // table
@@ -211,11 +214,11 @@ function render(){
   Array.prototype.forEach.call($("tb").children,function(r){r.onclick=function(){sel=r.getAttribute("data-m");render()}});
   // list
   var items=data.filter(function(x){return x.date.slice(0,7)==sel}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id});
-  $("lt").textContent="Transactions · "+mlab(sel);
+  $("lt").textContent=G(9)+" · "+mlab(sel);
   $("list").innerHTML=items.length?items.map(function(x,i){
-    return '<div class="it" style="animation-delay:'+Math.min(i,12)*.04+'s"><div class="ic">'+((x.type=="inc"?INCC:EXPC)[x.cat]||"📌")+'</div><div class="m"><b>'+esc(x.cat)+'</b><small>'+esc(x.note||"")+' '+x.date+'</small></div><b class="'+(x.type=="inc"?"pos":"neg")+'">'+(x.type=="inc"?"+":"-")+fmt(x.amt).replace("-","")+'</b><button class="x" data-del="'+x.id+'" aria-label="Delete">✕</button></div>'}).join(""):'<div class="empty"><span>📭</span>Nothing here yet. Use the buttons below to add.</div>';
+    return '<div class="it" style="animation-delay:'+Math.min(i,12)*.04+'s"><div class="ic">'+((x.type=="inc"?INCC:EXPC)[x.cat]||"📌")+'</div><div class="m"><b>'+esc(x.cat)+'</b><small>'+esc(x.note||"")+' '+x.date+'</small></div><b class="'+(x.type=="inc"?"pos":"neg")+'">'+(x.type=="inc"?"+":"-")+fmt(x.amt).replace("-","")+'</b><button class="x" data-del="'+x.id+'" aria-label="Delete">✕</button></div>'}).join(""):'<div class="empty"><span>📭</span>'+G(31)+'</div>';
 }
-$("list").onclick=function(e){var d=e.target.getAttribute("data-del");if(d){data=data.filter(function(x){return String(x.id)!==d});save();render();toast("Deleted")}};
+$("list").onclick=function(e){var d=e.target.getAttribute("data-del");if(d){data=data.filter(function(x){return String(x.id)!==d});save();render();toast("🗑️ ✓")}};
 $("prev").onclick=function(){sel=shift(sel,-1);render()};
 $("next").onclick=function(){sel=shift(sel,1);render()};
 $("cur").onchange=function(){sym=this.value;lset(CK,sym);render()};
@@ -238,13 +241,13 @@ $("save").onclick=function(){
 function addEntry(t,a,c,n,d){data.push({id:Date.now(),type:t,amt:a,cat:c,note:n,date:d});save();sel=d.slice(0,7);render();beep()}
 
 function dl(n,t,ty){var u=URL.createObjectURL(new Blob([t],{type:ty})),a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},2000)}
-$("bk").onclick=function(){dl("expense-backup-"+today()+".json",JSON.stringify({entries:data},null,1),"application/json");toast("Backup downloaded")};
+$("bk").onclick=function(){dl("expense-backup-"+today()+".json",JSON.stringify({entries:data},null,1),"application/json");toast("⬇ ✓")};
 $("xl").onclick=function(){
   var rows=[["Date","Type","Category","Note","Amount"]].concat(data.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).map(function(x){return [x.date,x.type=="inc"?"Income":"Expense",x.cat,x.note,x.amt]}));
-  dl("expenses-"+today()+".csv","\ufeff"+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n"),"text/csv");toast("Exported")};
+  dl("expenses-"+today()+".csv","\ufeff"+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n"),"text/csv");toast("📊 ✓")};
 $("rs").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();
   r.onload=function(){try{var v=JSON.parse(r.result),l=Array.isArray(v)?v:v.entries,seen={};data.forEach(function(x){seen[x.id]=1});
-    l.forEach(function(x){if(x&&x.id&&x.date&&x.amt&&!seen[x.id]){data.push(x);seen[x.id]=1}});save();render();toast("Restored ✓")}catch(e){toast("Invalid file")}};
+    l.forEach(function(x){if(x&&x.id&&x.date&&x.amt&&!seen[x.id]){data.push(x);seen[x.id]=1}});save();render();toast("⬆ ✓")}catch(e){toast("⚠️")}};
   r.readAsText(f);this.value=""};
 
 
@@ -278,6 +281,9 @@ function parseVoice(raw){
   outer:for(var r=0;r<RULES.length;r++){var R1=RULES[r];
     for(var j=0;j<R1.s.length;j++)if(t.indexOf(R1.s[j])>-1){c=R1.c;break outer}
     if(R1.t)for(var k=0;k<R1.t.length;k++)if(w.indexOf(R1.t[k])>-1){c=R1.c;break outer}}
+  var xp=hw(w,XPR)||hs(t,XPS);
+  if(!xp&&(hw(w,INR)||hs(t,INS)))return{t:"inc",a:a,c:"Other",n:raw};
+  if(!xp&&c=="Other"&&(hw(w,WKR)||hs(t,WKS)))return{t:"inc",a:a,c:"Other",n:raw};
   return{t:"exp",a:a,c:c,n:raw}}
 var T={
 "en-IN":["💸 I spent money","💰 I received money","Expense","Income","Save","Enter amount","🎤 Listening… say “150 nasta na”","Didn’t catch the amount. Try again","added ✓","Time to add today’s expenses. Tap 🎤 and speak."],
@@ -291,8 +297,40 @@ var T={
 "ml-IN":["💸 ഞാൻ ചെലവാക്കി","💰 എനിക്ക് പണം കിട്ടി","ചെലവ്","വരുമാനം","സേവ് ചെയ്യുക","തുക നൽകുക","🎤 കേൾക്കുന്നു… പറയൂ “150 ടിഫിൻ”","തുക മനസ്സിലായില്ല. വീണ്ടും പറയൂ","ചേർത്തു ✓","ഇന്നത്തെ ചെലവ് ചേർക്കാനുള്ള സമയം. 🎤 അമർത്തി പറയൂ."],
 "pa-IN":["💸 ਮੈਂ ਖਰਚ ਕੀਤਾ","💰 ਮੈਨੂੰ ਪੈਸੇ ਮਿਲੇ","ਖਰਚ","ਆਮਦਨ","ਸੇਵ ਕਰੋ","ਰਕਮ ਲਿਖੋ","🎤 ਸੁਣ ਰਿਹਾ ਹਾਂ… ਬੋਲੋ “150 ਨਾਸ਼ਤਾ”","ਰਕਮ ਸਮਝ ਨਹੀਂ ਆਈ। ਫਿਰ ਬੋਲੋ","ਜੋੜਿਆ ਗਿਆ ✓","ਅੱਜ ਦੇ ਖਰਚ ਜੋੜਨ ਦਾ ਸਮਾਂ। 🎤 ਦਬਾ ਕੇ ਬੋਲੋ।"],
 "ur-IN":["💸 میں نے خرچ کیا","💰 مجھے پیسے ملے","خرچ","آمدنی","محفوظ کریں","رقم لکھیں","🎤 سن رہا ہوں… بولیں “150 ناشتہ”","رقم سمجھ نہیں آئی۔ دوبارہ بولیں","شامل ہو گیا ✓","آج کے خرچ شامل کرنے کا وقت۔ 🎤 دبا کر بولیں۔"]};
+var T2={
+"en-IN":["Know where your money goes","Total balance","Income","Spent","Saved","All months","Where the money went","Month by month","Month","Transactions","Reminders & voice","Daily reminders","Reminder 1","Reminder 2","Language","Allow notifications","Test reminder","Check my phone","Reminders ring while PocketPal is open, and show up when you reopen it.","Your data","Backup","Restore","Export to Excel","Your data is saved automatically on this device. Take a backup now and then.","Note (optional)","Expense reminder","Speak","Add","You have spent %d% of your income","Add your income first to see how much is left","No spending in %m","Nothing here yet. Use the buttons below to add.","Please allow microphone permission","Voice isn’t supported here. Use Chrome."],
+"gu-IN":["તમારા પૈસા ક્યાં જાય છે તે જાણો","કુલ બેલેન્સ","આવક","ખર્ચ","બચત","બધા મહિના","પૈસા ક્યાં ગયા","મહિના પ્રમાણે","મહિનો","વ્યવહારો","રિમાઇન્ડર અને અવાજ","રોજના રિમાઇન્ડર","રિમાઇન્ડર 1","રિમાઇન્ડર 2","ભાષા","નોટિફિકેશન ચાલુ કરો","રિમાઇન્ડર ચકાસો","મારો ફોન ચકાસો","PocketPal ખુલ્લી હોય ત્યારે રિમાઇન્ડર વાગે છે, અને ફરી ખોલો ત્યારે દેખાય છે.","તમારો ડેટા","બેકઅપ","રિસ્ટોર","Excel માં એક્સપોર્ટ","તમારો ડેટા આ ફોનમાં આપોઆપ સેવ થાય છે. ક્યારેક બેકઅપ લેતા રહો.","નોંધ (વૈકલ્પિક)","ખર્ચ રિમાઇન્ડર","બોલો","ઉમેરો","તમે આવકના %d% ખર્ચ કર્યા છે","પહેલા આવક ઉમેરો, પછી બાકી રકમ દેખાશે","%m માં કોઈ ખર્ચ નથી","અહીં હજુ કંઈ નથી. નીચેના બટનથી ઉમેરો.","માઇક્રોફોનની પરવાનગી આપો","અહીં વૉઇસ ચાલતું નથી. Chrome વાપરો."],
+"hi-IN":["जानें आपका पैसा कहाँ जाता है","कुल बैलेंस","आमदनी","खर्च","बचत","सभी महीने","पैसा कहाँ गया","महीने के हिसाब से","महीना","लेन-देन","रिमाइंडर और आवाज़","रोज़ के रिमाइंडर","रिमाइंडर 1","रिमाइंडर 2","भाषा","नोटिफिकेशन चालू करें","रिमाइंडर जाँचें","मेरा फ़ोन जाँचें","PocketPal खुला हो तब रिमाइंडर बजता है, और दोबारा खोलने पर दिखता है।","आपका डेटा","बैकअप","रिस्टोर","Excel में एक्सपोर्ट","आपका डेटा इस फ़ोन में अपने आप सेव होता है। बीच-बीच में बैकअप लेते रहें।","नोट (वैकल्पिक)","खर्च रिमाइंडर","बोलें","जोड़ें","आपने आमदनी का %d% खर्च किया है","पहले आमदनी जोड़ें, फिर बचा हुआ दिखेगा","%m में कोई खर्च नहीं","यहाँ अभी कुछ नहीं है। नीचे के बटन से जोड़ें।","माइक्रोफ़ोन की अनुमति दें","यहाँ वॉइस नहीं चलता। Chrome इस्तेमाल करें।"],
+"mr-IN":["तुमचा पैसा कुठे जातो ते जाणा","एकूण शिल्लक","उत्पन्न","खर्च","बचत","सर्व महिने","पैसे कुठे गेले","महिन्यानुसार","महिना","व्यवहार","रिमाइंडर आणि आवाज","रोजचे रिमाइंडर","रिमाइंडर 1","रिमाइंडर 2","भाषा","नोटिफिकेशन सुरू करा","रिमाइंडर तपासा","माझा फोन तपासा","PocketPal उघडे असताना रिमाइंडर वाजतो, आणि पुन्हा उघडल्यावर दिसतो.","तुमचा डेटा","बॅकअप","रिस्टोर","Excel मध्ये एक्सपोर्ट","तुमचा डेटा या फोनमध्ये आपोआप सेव्ह होतो. अधूनमधून बॅकअप घ्या.","टीप (ऐच्छिक)","खर्च रिमाइंडर","बोला","जोडा","तुम्ही उत्पन्नाच्या %d% खर्च केला आहे","आधी उत्पन्न जोडा, मग शिल्लक दिसेल","%m मध्ये खर्च नाही","इथे अजून काही नाही. खालच्या बटणांनी जोडा.","मायक्रोफोनची परवानगी द्या","इथे व्हॉइस चालत नाही. Chrome वापरा."],
+"bn-IN":["জানুন আপনার টাকা কোথায় যায়","মোট ব্যালেন্স","আয়","খরচ","সঞ্চয়","সব মাস","টাকা কোথায় গেল","মাস অনুযায়ী","মাস","লেনদেন","রিমাইন্ডার ও ভয়েস","দৈনিক রিমাইন্ডার","রিমাইন্ডার ১","রিমাইন্ডার ২","ভাষা","নোটিফিকেশন চালু করুন","রিমাইন্ডার পরীক্ষা","আমার ফোন পরীক্ষা","PocketPal খোলা থাকলে রিমাইন্ডার বাজে, আবার খুললে দেখা যায়।","আপনার ডেটা","ব্যাকআপ","রিস্টোর","Excel-এ এক্সপোর্ট","আপনার ডেটা এই ফোনে নিজে থেকেই সেভ হয়। মাঝে মাঝে ব্যাকআপ নিন।","নোট (ঐচ্ছিক)","খরচের রিমাইন্ডার","বলুন","যোগ করুন","আপনি আয়ের %d% খরচ করেছেন","আগে আয় যোগ করুন, তারপর বাকি টাকা দেখা যাবে","%m-এ কোনো খরচ নেই","এখানে এখনো কিছু নেই। নিচের বোতাম দিয়ে যোগ করুন।","মাইক্রোফোনের অনুমতি দিন","এখানে ভয়েস চলে না। Chrome ব্যবহার করুন।"],
+"ta-IN":["உங்கள் பணம் எங்கே போகிறது என்று அறியுங்கள்","மொத்த இருப்பு","வருமானம்","செலவு","சேமிப்பு","எல்லா மாதங்களும்","பணம் எங்கே போனது","மாதவாரியாக","மாதம்","பரிவர்த்தனைகள்","நினைவூட்டல் & குரல்","தினசரி நினைவூட்டல்","நினைவூட்டல் 1","நினைவூட்டல் 2","மொழி","அறிவிப்புகளை அனுமதி","நினைவூட்டலை சோதி","என் போனை சோதி","PocketPal திறந்திருக்கும்போது நினைவூட்டல் ஒலிக்கும், மீண்டும் திறக்கும்போது தெரியும்.","உங்கள் தரவு","காப்புப்பிரதி","மீட்டமை","Excel-க்கு ஏற்றுமதி","உங்கள் தரவு இந்த போனில் தானாகச் சேமிக்கப்படும். அவ்வப்போது காப்புப்பிரதி எடுங்கள்.","குறிப்பு (விருப்பம்)","செலவு நினைவூட்டல்","பேசுங்கள்","சேர்","வருமானத்தில் %d% செலவு செய்துள்ளீர்கள்","முதலில் வருமானத்தைச் சேருங்கள், பிறகு மீதி தெரியும்","%m மாதத்தில் செலவு இல்லை","இங்கே இன்னும் எதுவும் இல்லை. கீழே உள்ள பொத்தான்களால் சேருங்கள்.","மைக்ரோஃபோன் அனுமதியை வழங்குங்கள்","இங்கே குரல் வேலை செய்யாது. Chrome பயன்படுத்துங்கள்."],
+"te-IN":["మీ డబ్బు ఎక్కడికి వెళ్తుందో తెలుసుకోండి","మొత్తం బ్యాలెన్స్","ఆదాయం","ఖర్చు","పొదుపు","అన్ని నెలలు","డబ్బు ఎక్కడికి వెళ్లింది","నెలవారీగా","నెల","లావాదేవీలు","రిమైండర్లు & వాయిస్","రోజువారీ రిమైండర్లు","రిమైండర్ 1","రిమైండర్ 2","భాష","నోటిఫికేషన్లు అనుమతించండి","రిమైండర్ పరీక్షించండి","నా ఫోన్ పరీక్షించండి","PocketPal తెరిచి ఉన్నప్పుడు రిమైండర్ మోగుతుంది, మళ్లీ తెరిచినప్పుడు కనిపిస్తుంది.","మీ డేటా","బ్యాకప్","రీస్టోర్","Excelకు ఎగుమతి","మీ డేటా ఈ ఫోన్‌లో ఆటోమేటిక్‌గా సేవ్ అవుతుంది. అప్పుడప్పుడు బ్యాకప్ తీసుకోండి.","గమనిక (ఐచ్ఛికం)","ఖర్చు రిమైండర్","మాట్లాడండి","జోడించు","మీరు ఆదాయంలో %d% ఖర్చు చేశారు","ముందు ఆదాయం జోడించండి, తర్వాత మిగిలినది కనిపిస్తుంది","%m లో ఖర్చు లేదు","ఇక్కడ ఇంకా ఏమీ లేదు. కింది బటన్లతో జోడించండి.","మైక్రోఫోన్ అనుమతి ఇవ్వండి","ఇక్కడ వాయిస్ పనిచేయదు. Chrome వాడండి."],
+"kn-IN":["ನಿಮ್ಮ ಹಣ ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತದೆ ತಿಳಿಯಿರಿ","ಒಟ್ಟು ಬ್ಯಾಲೆನ್ಸ್","ಆದಾಯ","ಖರ್ಚು","ಉಳಿತಾಯ","ಎಲ್ಲಾ ತಿಂಗಳುಗಳು","ಹಣ ಎಲ್ಲಿಗೆ ಹೋಯಿತು","ತಿಂಗಳ ಪ್ರಕಾರ","ತಿಂಗಳು","ವಹಿವಾಟುಗಳು","ರಿಮೈಂಡರ್ ಮತ್ತು ಧ್ವನಿ","ದಿನದ ರಿಮೈಂಡರ್‌ಗಳು","ರಿಮೈಂಡರ್ 1","ರಿಮೈಂಡರ್ 2","ಭಾಷೆ","ಅಧಿಸೂಚನೆ ಅನುಮತಿಸಿ","ರಿಮೈಂಡರ್ ಪರೀಕ್ಷಿಸಿ","ನನ್ನ ಫೋನ್ ಪರೀಕ್ಷಿಸಿ","PocketPal ತೆರೆದಿರುವಾಗ ರಿಮೈಂಡರ್ ಮೊಳಗುತ್ತದೆ, ಮತ್ತೆ ತೆರೆದಾಗ ಕಾಣಿಸುತ್ತದೆ.","ನಿಮ್ಮ ಡೇಟಾ","ಬ್ಯಾಕಪ್","ಮರುಸ್ಥಾಪಿಸಿ","Excelಗೆ ರಫ್ತು","ನಿಮ್ಮ ಡೇಟಾ ಈ ಫೋನ್‌ನಲ್ಲಿ ತಾನಾಗಿ ಉಳಿಯುತ್ತದೆ. ಆಗಾಗ ಬ್ಯಾಕಪ್ ತೆಗೆದುಕೊಳ್ಳಿ.","ಟಿಪ್ಪಣಿ (ಐಚ್ಛಿಕ)","ಖರ್ಚು ರಿಮೈಂಡರ್","ಮಾತನಾಡಿ","ಸೇರಿಸಿ","ನೀವು ಆದಾಯದ %d% ಖರ್ಚು ಮಾಡಿದ್ದೀರಿ","ಮೊದಲು ಆದಾಯ ಸೇರಿಸಿ, ನಂತರ ಉಳಿದದ್ದು ಕಾಣುತ್ತದೆ","%m ನಲ್ಲಿ ಖರ್ಚು ಇಲ್ಲ","ಇಲ್ಲಿ ಇನ್ನೂ ಏನೂ ಇಲ್ಲ. ಕೆಳಗಿನ ಬಟನ್‌ಗಳಿಂದ ಸೇರಿಸಿ.","ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿ ನೀಡಿ","ಇಲ್ಲಿ ಧ್ವನಿ ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ. Chrome ಬಳಸಿ."],
+"ml-IN":["നിങ്ങളുടെ പണം എവിടെ പോകുന്നു എന്നറിയൂ","ആകെ ബാലൻസ്","വരുമാനം","ചെലവ്","സമ്പാദ്യം","എല്ലാ മാസങ്ങളും","പണം എവിടെ പോയി","മാസം തിരിച്ച്","മാസം","ഇടപാടുകൾ","റിമൈൻഡറും ശബ്ദവും","ദിവസേനയുള്ള റിമൈൻഡറുകൾ","റിമൈൻഡർ 1","റിമൈൻഡർ 2","ഭാഷ","അറിയിപ്പുകൾ അനുവദിക്കുക","റിമൈൻഡർ പരിശോധിക്കുക","എന്റെ ഫോൺ പരിശോധിക്കുക","PocketPal തുറന്നിരിക്കുമ്പോൾ റിമൈൻഡർ മുഴങ്ങും, വീണ്ടും തുറക്കുമ്പോൾ കാണിക്കും.","നിങ്ങളുടെ ഡാറ്റ","ബാക്കപ്പ്","പുനഃസ്ഥാപിക്കുക","Excel-ലേക്ക് എക്സ്പോർട്ട്","നിങ്ങളുടെ ഡാറ്റ ഈ ഫോണിൽ തനിയെ സേവ് ആകും. ഇടയ്ക്കിടെ ബാക്കപ്പ് എടുക്കുക.","കുറിപ്പ് (ഓപ്ഷണൽ)","ചെലവ് റിമൈൻഡർ","പറയൂ","ചേർക്കുക","വരുമാനത്തിന്റെ %d% നിങ്ങൾ ചെലവാക്കി","ആദ്യം വരുമാനം ചേർക്കൂ, പിന്നെ ബാക്കി കാണാം","%m-ൽ ചെലവില്ല","ഇവിടെ ഇതുവരെ ഒന്നുമില്ല. താഴെയുള്ള ബട്ടണുകൾ ഉപയോഗിച്ച് ചേർക്കൂ.","മൈക്രോഫോൺ അനുമതി നൽകുക","ഇവിടെ വോയ്സ് പ്രവർത്തിക്കില്ല. Chrome ഉപയോഗിക്കൂ."],
+"pa-IN":["ਜਾਣੋ ਤੁਹਾਡਾ ਪੈਸਾ ਕਿੱਥੇ ਜਾਂਦਾ ਹੈ","ਕੁੱਲ ਬਕਾਇਆ","ਆਮਦਨ","ਖਰਚ","ਬੱਚਤ","ਸਾਰੇ ਮਹੀਨੇ","ਪੈਸਾ ਕਿੱਥੇ ਗਿਆ","ਮਹੀਨੇ ਮੁਤਾਬਕ","ਮਹੀਨਾ","ਲੈਣ-ਦੇਣ","ਰੀਮਾਈਂਡਰ ਅਤੇ ਆਵਾਜ਼","ਰੋਜ਼ਾਨਾ ਰੀਮਾਈਂਡਰ","ਰੀਮਾਈਂਡਰ 1","ਰੀਮਾਈਂਡਰ 2","ਭਾਸ਼ਾ","ਨੋਟੀਫਿਕੇਸ਼ਨ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ","ਰੀਮਾਈਂਡਰ ਜਾਂਚੋ","ਮੇਰਾ ਫ਼ੋਨ ਜਾਂਚੋ","PocketPal ਖੁੱਲ੍ਹੀ ਹੋਵੇ ਤਾਂ ਰੀਮਾਈਂਡਰ ਵੱਜਦਾ ਹੈ, ਅਤੇ ਦੁਬਾਰਾ ਖੋਲ੍ਹਣ ’ਤੇ ਦਿਸਦਾ ਹੈ।","ਤੁਹਾਡਾ ਡਾਟਾ","ਬੈਕਅੱਪ","ਰੀਸਟੋਰ","Excel ਵਿੱਚ ਐਕਸਪੋਰਟ","ਤੁਹਾਡਾ ਡਾਟਾ ਇਸ ਫ਼ੋਨ ਵਿੱਚ ਆਪਣੇ-ਆਪ ਸੇਵ ਹੁੰਦਾ ਹੈ। ਕਦੇ-ਕਦੇ ਬੈਕਅੱਪ ਲੈਂਦੇ ਰਹੋ।","ਨੋਟ (ਵਿਕਲਪਿਕ)","ਖਰਚ ਰੀਮਾਈਂਡਰ","ਬੋਲੋ","ਜੋੜੋ","ਤੁਸੀਂ ਆਮਦਨ ਦਾ %d% ਖਰਚ ਕੀਤਾ ਹੈ","ਪਹਿਲਾਂ ਆਮਦਨ ਜੋੜੋ, ਫਿਰ ਬਚਿਆ ਹੋਇਆ ਦਿਸੇਗਾ","%m ਵਿੱਚ ਕੋਈ ਖਰਚ ਨਹੀਂ","ਇੱਥੇ ਅਜੇ ਕੁਝ ਨਹੀਂ। ਹੇਠਾਂ ਦੇ ਬਟਨਾਂ ਨਾਲ ਜੋੜੋ।","ਮਾਈਕ੍ਰੋਫ਼ੋਨ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ","ਇੱਥੇ ਵੌਇਸ ਨਹੀਂ ਚੱਲਦਾ। Chrome ਵਰਤੋ।"],
+"ur-IN":["جانیں آپ کا پیسہ کہاں جاتا ہے","کل بیلنس","آمدنی","خرچ","بچت","تمام مہینے","پیسہ کہاں گیا","مہینے کے حساب سے","مہینہ","لین دین","ریمائنڈر اور آواز","روزانہ ریمائنڈر","ریمائنڈر 1","ریمائنڈر 2","زبان","نوٹیفکیشن کی اجازت دیں","ریمائنڈر جانچیں","میرا فون جانچیں","PocketPal کھلی ہو تو ریمائنڈر بجتا ہے، اور دوبارہ کھولنے پر نظر آتا ہے۔","آپ کا ڈیٹا","بیک اپ","ریسٹور","Excel میں ایکسپورٹ","آپ کا ڈیٹا اس فون میں خود بخود محفوظ ہوتا ہے۔ کبھی کبھی بیک اپ لیتے رہیں۔","نوٹ (اختیاری)","خرچ ریمائنڈر","بولیں","شامل کریں","آپ نے آمدنی کا %d% خرچ کیا ہے","پہلے آمدنی شامل کریں، پھر بچا ہوا نظر آئے گا","%m میں کوئی خرچ نہیں","یہاں ابھی کچھ نہیں۔ نیچے کے بٹنوں سے شامل کریں۔","مائیکروفون کی اجازت دیں","یہاں وائس نہیں چلتی۔ Chrome استعمال کریں۔"]};
+function G(i){return (T2[R.lang]||T2["en-IN"])[i]}
+function applyLang2(){var q=function(s){return document.querySelector(s)},qa=function(s){return document.querySelectorAll(s)};
+ q(".top h1 small").textContent=G(0);q(".hero>small").textContent=G(1);
+ var c=qa(".chip small");c[0].textContent="⬆ "+G(2);c[1].textContent="⬇ "+G(3);
+ var h3=qa(".three small");h3[0].textContent=G(2);h3[1].textContent=G(3);h3[2].textContent=G(4);
+ var h=q(".g2 h2");h.firstChild.nodeValue=G(5);var hs0=h.querySelector("small");if(hs0)hs0.textContent="";
+ var lg=qa(".leg span");lg[0].lastChild.nodeValue=G(2);lg[1].lastChild.nodeValue=G(3);
+ q(".g2>.card:nth-child(2) h2").textContent=G(6);
+ var hh=qa(".wrap>.card>h2");hh[0].textContent=G(7);hh[2].textContent="🔔 "+G(10);hh[3].textContent=G(19);
+ var th=qa("th");th[0].textContent=G(8);th[1].textContent=G(2);th[2].textContent=G(3);th[3].textContent=G(4);
+ var rw=qa(".row span");rw[0].textContent=G(11);rw[1].textContent=G(12);rw[2].textContent=G(13);rw[3].textContent=G(14)+" / Language";
+ $("rn").textContent="🔔 "+G(15);$("rt").textContent="▶ "+G(16);$("ck").textContent="🧪 "+G(17);$("rh").textContent=G(18);
+ $("bk").textContent="⬇ "+G(20);$("rs").parentNode.firstChild.nodeValue="⬆ "+G(21);$("xl").textContent="📊 "+G(22);$("dh").textContent=G(23);
+ $("note").placeholder=G(24);q("#rem b").textContent="⏰ "+G(25);$("rv").textContent="🎤 "+G(26);$("ra").textContent="✍ "+G(27)}
+var INR=["received","got","income","credited","credit","earned","deposit","refund","malya","maliya","mali","mila","mile","aaya","avya","aavya","jama","aavak","kamai"],
+INS=["મળ્યા","મળ્યું","મળી","આવ્યા","આવક","જમા","કમાણી","मिले","मिला","मिली","आए","आमदनी","जमा","कमाई","मिळाले","मिळाली","उत्पन्न","পেয়েছি","পেলাম","আয়","জমা","வந்தது","கிடைத்தது","வருமானம்","வரவு","వచ్చింది","వచ్చాయి","ఆదాయం","జమ","ಬಂತು","ಬಂದಿತು","ಬಂದಿದೆ","ಆದಾಯ","ಜಮಾ","കിട്ടി","ലഭിച്ചു","വരുമാനം","ਮਿਲੇ","ਮਿਲਿਆ","ਆਮਦਨ","ਜਮ੍ਹਾ","ملے","ملا","آمدنی","جمع"],
+WKR=["add","umero","umer","jodo","jod"],WKS=["ઉમેર","जोड","জোড়","சேர்","జోడ","ಸೇರಿಸ","ചേർ","ਜੋੜ","شامل"],
+XPR=["spent","kharcha","kharch","vapryaa","vapari"],XPS=["ખર્ચ","खर्च","খরচ","செலவு","ఖర్చు","ಖರ್ಚು","ചെലവ്","ਖਰਚ","خرچ"];
+function hs(t,a){for(var i=0;i<a.length;i++)if(t.indexOf(a[i])>-1)return true;return false}
+function hw(w,a){for(var i=0;i<a.length;i++)if(w.indexOf(a[i])>-1)return true;return false}
 function L10(){return T[R.lang]||T["en-IN"]}
-function applyLang(){var L=L10();$("addE").textContent=L[0];$("addI").textContent=L[1];$("te").textContent=L[2];$("ti").textContent=L[3];$("save").textContent=L[4];$("amt").placeholder=L[5];document.documentElement.lang=R.lang.slice(0,2)}
+function applyLang(){var L=L10();$("addE").textContent=L[0];$("addI").textContent=L[1];$("te").textContent=L[2];$("ti").textContent=L[3];$("save").textContent=L[4];$("amt").placeholder=L[5];document.documentElement.lang=R.lang.slice(0,2);applyLang2()}
 var EX={Nasta:{s:["ટિફિન","টিফিন","நாஸ்தா","டிபன்","சிற்றுண்டி","టిఫిన్","అల్పాహారం","ತಿಂಡಿ","ಉಪಾಹಾರ","ടിഫിൻ","പ്രഭാതഭക്ഷണം","জলখাবার","নাস্তা","ਨਾਸ਼ਤਾ","ناشتہ","ناشتا","नास्ता","tiffin"]},
 Chai:{s:["தேநீர்","காபி","ചായ","చాయ్","ಚಹಾ","ਚਾਹ","چائے","चहा","কফি"],t:["চা","டீ","టీ","ಟೀ","ಕಾಫಿ"]},
 Jaman:{s:["जेवण","খাবার","ভাত","சாப்பாடு","భోజనం","ಊಟ","ഭക്ഷണം","ਖਾਣਾ","کھانا"]},
@@ -305,12 +343,12 @@ function handleVoice(alts){var p=null;for(var i=0;i<alts.length&&!p;i++)p=parseV
   addEntry(p.t,p.a,p.c,p.n,today());
   toast((p.t=="inc"?"💰 ":"✓ ")+fmt(p.a)+" → "+p.c+" "+L10()[8],2600)}
 $("mic").onclick=function(){beep0();
-  if(!SR){toast("Voice isn’t supported in this browser. Use Chrome.",2800);return}
+  if(!SR){toast(G(33),2800);return}
   if(live&&rec){rec.stop();return}
   rec=new SR();rec.lang=$("vl").value;rec.interimResults=false;rec.maxAlternatives=3;
   rec.onstart=function(){live=true;$("mic").classList.add("live");toast(L10()[6],4000)};
   rec.onend=function(){live=false;$("mic").classList.remove("live")};
-  rec.onerror=function(e){toast(e.error=="not-allowed"||e.error=="service-not-allowed"?(window.self!==window.top?"Mic is blocked inside Claude. Open the page directly in Chrome.":"Please allow microphone permission"):"Couldn’t hear that, try again",2600)};
+  rec.onerror=function(e){toast(e.error=="not-allowed"||e.error=="service-not-allowed"?(window.self!==window.top?"Mic is blocked inside Claude. Open the page directly in Chrome.":G(32)):L10()[7],2600)};
   rec.onresult=function(e){var a=[];for(var i=0;i<e.results[0].length;i++)a.push(e.results[0][i].transcript);handleVoice(a)};
   try{rec.start()}catch(x){}};
 function beep0(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state=="suspended")AC.resume()}catch(e){}}
@@ -325,11 +363,11 @@ function fireRem(label){beep();$("remt").textContent=label+" "+L10()[9];$("rem")
 function checkRem(){if(!R.on)return;var n=new Date(),m=n.getHours()*60+n.getMinutes(),td=today(),L={t1:"🕛",t2:"🌇"};
   for(var k in L){var f="f"+k.slice(1),s=mins(R[k]);if(R[f]!=td&&m>=s&&m<s+180){R[f]=td;saveR();fireRem(L[k]);return}}}
 $("ron").checked=R.on;$("t1").value=R.t1;$("t2").value=R.t2;$("vl").value=R.lang;applyLang();
-$("ron").onchange=function(){R.on=this.checked;saveR();toast(R.on?"Reminders on":"Reminders off")};
+$("ron").onchange=function(){R.on=this.checked;saveR();toast(R.on?"🔔 ✓":"🔕")};
 $("t1").onchange=function(){R.t1=this.value||"12:00";R.f1="";saveR();checkRem()};
 $("t2").onchange=function(){R.t2=this.value||"19:30";R.f2="";saveR();checkRem()};
-$("vl").onchange=function(){R.lang=this.value;saveR();applyLang()};
-$("rn").onclick=function(){beep0();try{Notification.requestPermission().then(function(p){toast(p=="granted"?"Notifications allowed ✓":"Notifications blocked")})}catch(e){toast("Notifications not available here")}};
+$("vl").onchange=function(){R.lang=this.value;saveR();applyLang();render()};
+$("rn").onclick=function(){beep0();try{Notification.requestPermission().then(function(p){toast(p=="granted"?"🔔 ✓":"🔕 ✕")})}catch(e){toast("🔕 ✕")}};
 $("rt").onclick=function(){fireRem("🔔")};
 $("rx").onclick=function(){$("rem").classList.remove("on")};
 $("rv").onclick=function(){$("rem").classList.remove("on");$("mic").click()};
