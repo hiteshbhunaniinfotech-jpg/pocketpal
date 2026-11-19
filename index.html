@@ -203,7 +203,7 @@ function render(){
   if(!ck.length){$("donut").innerHTML='<div class="empty"><span>🌱</span>'+G(30).replace("%m",mlab(sel))+'</div>'}
   else{
     var cs=ck.map(function(c,i){var p=cats[c]/tot*100,s='<circle r="15.9155" cx="21" cy="21" fill="none" stroke="'+COL[i%COL.length]+'" stroke-width="5" stroke-dasharray="0 100" stroke-dashoffset="'+(-acc)+'" data-d="'+p+' '+(100-p)+'"/>';acc+=p;return s}).join("");
-    var lg=ck.map(function(c,i){return '<div><span><i style="background:'+COL[i%COL.length]+'"></i>'+(EXPC[c]||"📌")+' '+esc(c)+'</span><b>'+fmt(cats[c])+' · '+Math.round(cats[c]/tot*100)+'%</b></div>'}).join("");
+    var lg=ck.map(function(c,i){return '<div><span><i style="background:'+COL[i%COL.length]+'"></i>'+(EXPC[c]||"📌")+' '+esc(CN(c))+'</span><b>'+fmt(cats[c])+' · '+Math.round(cats[c]/tot*100)+'%</b></div>'}).join("");
     $("donut").innerHTML='<div class="dw"><svg viewBox="0 0 42 42"><circle r="15.9155" cx="21" cy="21" fill="none" stroke="var(--bg)" stroke-width="5"/>'+cs+'</svg><div class="dc"><small>'+G(3)+'</small><b>'+fmt(tot)+'</b></div></div><div class="lg">'+lg+'</div>';
     setTimeout(function(){Array.prototype.forEach.call(document.querySelectorAll(".donut circle[data-d]"),function(c){c.setAttribute("stroke-dasharray",c.getAttribute("data-d"))})},40);
   }
@@ -216,7 +216,7 @@ function render(){
   var items=data.filter(function(x){return x.date.slice(0,7)==sel}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id});
   $("lt").textContent=G(9)+" · "+mlab(sel);
   $("list").innerHTML=items.length?items.map(function(x,i){
-    return '<div class="it" style="animation-delay:'+Math.min(i,12)*.04+'s"><div class="ic">'+((x.type=="inc"?INCC:EXPC)[x.cat]||"📌")+'</div><div class="m"><b>'+esc(x.cat)+'</b><small>'+esc(x.note||"")+' '+x.date+'</small></div><b class="'+(x.type=="inc"?"pos":"neg")+'">'+(x.type=="inc"?"+":"-")+fmt(x.amt).replace("-","")+'</b><button class="x" data-del="'+x.id+'" aria-label="Delete">✕</button></div>'}).join(""):'<div class="empty"><span>📭</span>'+G(31)+'</div>';
+    return '<div class="it" style="animation-delay:'+Math.min(i,12)*.04+'s"><div class="ic">'+((x.type=="inc"?INCC:EXPC)[x.cat]||"📌")+'</div><div class="m"><b>'+esc(CN(x.cat))+'</b><small>'+esc(x.note||"")+' '+x.date+'</small></div><b class="'+(x.type=="inc"?"pos":"neg")+'">'+(x.type=="inc"?"+":"-")+fmt(x.amt).replace("-","")+'</b><button class="x" data-del="'+x.id+'" aria-label="Delete">✕</button></div>'}).join(""):'<div class="empty"><span>📭</span>'+G(31)+'</div>';
 }
 $("list").onclick=function(e){var d=e.target.getAttribute("data-del");if(d){data=data.filter(function(x){return String(x.id)!==d});save();render();toast("🗑️ ✓")}};
 $("prev").onclick=function(){sel=shift(sel,-1);render()};
@@ -226,7 +226,7 @@ $("cur").onchange=function(){sym=this.value;lset(CK,sym);render()};
 function setType(t){type=t;$("te").className=t=="exp"?"on":"";$("ti").className=t=="inc"?"on":"";
   var c=t=="exp"?EXPC:INCC;cat=Object.keys(c)[0];drawCats()}
 function drawCats(){var c=type=="exp"?EXPC:INCC;
-  $("cats").innerHTML=Object.keys(c).map(function(k){return '<button data-c="'+k+'" class="'+(k==cat?"on":"")+'">'+c[k]+" "+k+'</button>'}).join("")}
+  $("cats").innerHTML=Object.keys(c).map(function(k){return '<button data-c="'+k+'" class="'+(k==cat?"on":"")+'">'+c[k]+" "+CN(k)+'</button>'}).join("")}
 $("cats").onclick=function(e){var c=e.target.getAttribute("data-c");if(c){cat=c;drawCats()}};
 $("te").onclick=function(){setType("exp")};$("ti").onclick=function(){setType("inc")};
 function openS(){$("date").value=today();$("ov").classList.add("on");setTimeout(function(){$("amt").focus()},350)}
@@ -329,6 +329,18 @@ WKR=["add","umero","umer","jodo","jod"],WKS=["ઉમેર","जोड","জো�
 XPR=["spent","kharcha","kharch","vapryaa","vapari"],XPS=["ખર્ચ","खर्च","খরচ","செலவு","ఖర్చు","ಖರ್ಚು","ചെലവ്","ਖਰਚ","خرچ"];
 function hs(t,a){for(var i=0;i<a.length;i++)if(t.indexOf(a[i])>-1)return true;return false}
 function hw(w,a){for(var i=0;i<a.length;i++)if(w.indexOf(a[i])>-1)return true;return false}
+var CKO=["Food","Nasta","Chai","Jaman","Travel","Home","Bills","Shopping","Health","Fun","Other","Salary","Business","Gift"],CT={
+"gu-IN":["ખોરાક","નાસ્તો","ચા","જમવાનું","મુસાફરી","ઘર","બિલ","શોપિંગ","આરોગ્ય","મનોરંજન","અન્ય","પગાર","વ્યવસાય","ભેટ"],
+"hi-IN":["खाना","नाश्ता","चाय","भोजन","यात्रा","घर","बिल","शॉपिंग","स्वास्थ्य","मनोरंजन","अन्य","वेतन","व्यापार","उपहार"],
+"mr-IN":["अन्न","नाश्ता","चहा","जेवण","प्रवास","घर","बिल","खरेदी","आरोग्य","मनोरंजन","इतर","पगार","व्यवसाय","भेट"],
+"bn-IN":["খাবার","নাস্তা","চা","খাওয়া","ভ্রমণ","বাড়ি","বিল","কেনাকাটা","স্বাস্থ্য","বিনোদন","অন্যান্য","বেতন","ব্যবসা","উপহার"],
+"ta-IN":["உணவு","சிற்றுண்டி","தேநீர்","சாப்பாடு","பயணம்","வீடு","கட்டணம்","ஷாப்பிங்","உடல்நலம்","பொழுதுபோக்கு","மற்றவை","சம்பளம்","வணிகம்","பரிசு"],
+"te-IN":["ఆహారం","టిఫిన్","టీ","భోజనం","ప్రయాణం","ఇల్లు","బిల్లులు","షాపింగ్","ఆరోగ్యం","వినోదం","ఇతరాలు","జీతం","వ్యాపారం","బహుమతి"],
+"kn-IN":["ಆಹಾರ","ತಿಂಡಿ","ಚಹಾ","ಊಟ","ಪ್ರಯಾಣ","ಮನೆ","ಬಿಲ್‌ಗಳು","ಶಾಪಿಂಗ್","ಆರೋಗ್ಯ","ಮನರಂಜನೆ","ಇತರೆ","ಸಂಬಳ","ವ್ಯಾಪಾರ","ಉಡುಗೊರೆ"],
+"ml-IN":["ഭക്ഷണം","പലഹാരം","ചായ","ഊണ്","യാത്ര","വീട്","ബില്ലുകൾ","ഷോപ്പിംഗ്","ആരോഗ്യം","വിനോദം","മറ്റുള്ളവ","ശമ്പളം","ബിസിനസ്","സമ്മാനം"],
+"pa-IN":["ਖਾਣਾ","ਨਾਸ਼ਤਾ","ਚਾਹ","ਭੋਜਨ","ਸਫ਼ਰ","ਘਰ","ਬਿੱਲ","ਖਰੀਦਦਾਰੀ","ਸਿਹਤ","ਮਨੋਰੰਜਨ","ਹੋਰ","ਤਨਖਾਹ","ਕਾਰੋਬਾਰ","ਤੋਹਫ਼ਾ"],
+"ur-IN":["کھانا","ناشتہ","چائے","لنچ ڈنر","سفر","گھر","بل","خریداری","صحت","تفریح","دیگر","تنخواہ","کاروبار","تحفہ"]};
+function CN(c){var i=CKO.indexOf(c),a=CT[R.lang];return i>-1&&a?a[i]:c}
 function L10(){return T[R.lang]||T["en-IN"]}
 function applyLang(){var L=L10();$("addE").textContent=L[0];$("addI").textContent=L[1];$("te").textContent=L[2];$("ti").textContent=L[3];$("save").textContent=L[4];$("amt").placeholder=L[5];document.documentElement.lang=R.lang.slice(0,2);applyLang2()}
 var EX={Nasta:{s:["ટિફિન","টিফিন","நாஸ்தா","டிபன்","சிற்றுண்டி","టిఫిన్","అల్పాహారం","ತಿಂಡಿ","ಉಪಾಹಾರ","ടിഫിൻ","പ്രഭാതഭക്ഷണം","জলখাবার","নাস্তা","ਨਾਸ਼ਤਾ","ناشتہ","ناشتا","नास्ता","tiffin"]},
@@ -341,7 +353,7 @@ var SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=null,live=fa
 function handleVoice(alts){var p=null;for(var i=0;i<alts.length&&!p;i++)p=parseVoice(alts[i]);
   if(!p){toast(L10()[7],2600);return}
   addEntry(p.t,p.a,p.c,p.n,today());
-  toast((p.t=="inc"?"💰 ":"✓ ")+fmt(p.a)+" → "+p.c+" "+L10()[8],2600)}
+  toast((p.t=="inc"?"💰 ":"✓ ")+fmt(p.a)+" → "+CN(p.c)+" "+L10()[8],2600)}
 $("mic").onclick=function(){beep0();
   if(!SR){toast(G(33),2800);return}
   if(live&&rec){rec.stop();return}
@@ -366,7 +378,7 @@ $("ron").checked=R.on;$("t1").value=R.t1;$("t2").value=R.t2;$("vl").value=R.lang
 $("ron").onchange=function(){R.on=this.checked;saveR();toast(R.on?"🔔 ✓":"🔕")};
 $("t1").onchange=function(){R.t1=this.value||"12:00";R.f1="";saveR();checkRem()};
 $("t2").onchange=function(){R.t2=this.value||"19:30";R.f2="";saveR();checkRem()};
-$("vl").onchange=function(){R.lang=this.value;saveR();applyLang();render()};
+$("vl").onchange=function(){R.lang=this.value;saveR();applyLang();render();drawCats()};
 $("rn").onclick=function(){beep0();try{Notification.requestPermission().then(function(p){toast(p=="granted"?"🔔 ✓":"🔕 ✕")})}catch(e){toast("🔕 ✕")}};
 $("rt").onclick=function(){fireRem("🔔")};
 $("rx").onclick=function(){$("rem").classList.remove("on")};
